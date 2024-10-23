@@ -2,12 +2,6 @@ Extract first 10 pages of a document into a single file
 Load this file into S3 bucket
 Preprocess into chunks and then embed and then load into a ChromaDB database
 
-
-
-
-
-
-
 rag-app/
 │
 ├── backend/
