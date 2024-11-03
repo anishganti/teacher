@@ -1,5 +1,6 @@
 from preprocess.pdf_to_markdown import parse_documents, add_page_numbers, store_documents
-from preprocess.chunk_and_embed import get_nodes, get_embedding, chunk_and_embed
+from preprocess.chunk_and_embed import chunk_and_embed
+from preprocess.index_into_chroma import index_into_chroma
 from utils.document_serializer import serialize, deserialize
 from dotenv import load_dotenv
 import json
@@ -19,18 +20,14 @@ def main():
     #documents = add_page_numbers(documents)
     #store_documents(folder,documents)
 
+    
     document_path = '/Users/anishganti/Desktop/teacher/backend/storage/processed/deeplearningbooksample.pdf/deeplearningbooksample.pdf_1.json'
+    
     with open(document_path, 'r') as f:
         document = json.load(f)
         document = deserialize(document)
-        nodes = get_nodes(document)
-
-        for node in nodes:
-            print(node.metadata)
-            print(node.text)
-            embedding = get_embedding(node.text)
-            #print(embedding)
-            print('--------BREAK----------')
+        documents, embeddings, metadatas, ids = chunk_and_embed(document)
+        index_into_chroma("deeplearningbooksample", documents, embeddings, metadatas, ids)
 
 if __name__ == "__main__":
     main()

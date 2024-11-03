@@ -80,3 +80,12 @@ def store_documents(folder, documents):
 
         with open(f"{folder}/{file_name}/{file_name}_{page_num}.json", "w") as f:
             json.dump(document_json, f)
+
+def convert_pdf_to_markdown():
+    """
+    Reads all PDF files in the raw folder, parses them, adds page numbers to each document,
+    and stores the documents in a JSON file in the processed folder.
+    """
+    documents = parse_documents()
+    documents = add_page_numbers(documents)
+    store_documents("/Users/anishganti/Desktop/teacher/backend/storage/processed",documents)

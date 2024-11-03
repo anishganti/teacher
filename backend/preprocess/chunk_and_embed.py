@@ -1,11 +1,9 @@
 from llama_index.core.node_parser import MarkdownNodeParser
 from llama_index.core import Document
 from openai import OpenAI
-import os
+from utils.embeddings import get_embedding
 
-
-
-def get_nodes(document: Document) -> list:
+def chunk_document(document: Document) -> list:
     """
     Break a document into smaller chunks of text, represented as a list of nodes.
 
@@ -17,34 +15,45 @@ def get_nodes(document: Document) -> list:
     """
     parser = MarkdownNodeParser()
     nodes = parser.get_nodes_from_documents([document])
-    print(len(nodes))
+    generate_node_ids(nodes)
     return nodes
 
-def get_embedding(text: str) -> str:
+def generate_node_ids(nodes: list) -> None:
     """
-    Get a semantic embedding for a given text passage.
+    Generate node_ids for a list of nodes.
+
+    Assigns a unique identifier to each node in the form
+    {document_name}_{page_number}_{node_number}, where document_name is the name
+    of the document the node was extracted from, page_number is the page number
+    the node was extracted from within the document, and node_number is the
+    sequential number of the node within the document.
 
     Args:
-        text (str): The text passage to embed.
-
-    Returns:
-        str: The semantic embedding of the text as a string.
+        nodes (list): The list of nodes to assign ids to.
     """
-    client = OpenAI(
-    api_key=os.environ["NVIDIA_API_KEY"],
-    base_url="https://integrate.api.nvidia.com/v1"
-    )
-
-    response = client.embeddings.create(
-        input=[text],
-        model="nvidia/nv-embedqa-mistral-7b-v2",
-        encoding_format="float",
-        extra_body={"input_type": "passage", "truncate": "NONE"}
-    )
-
-    return response.data[0].embedding
+    for node_number, node   in enumerate(nodes, start=1):
+        node.metadata["node_number"] = node_number
+        document_name = node.metadata["file_name"]
+        page_number = node.metadata["page_number"]
+        node.metadata["node_id"] = f"{document_name}_{page_number}_{node_number}"
 
 def chunk_and_embed(document: str) -> str:
-    nodes = get_nodes(document)
-    embeddings = [get_embedding(node) for node in nodes]
-    return nodes, embeddings
+    """
+    Process a document by chunking it into nodes, then embedding each node.
+
+    Args:
+        document (str): The document to be processed.
+
+    Returns:
+        tuple: A tuple containing three lists:
+            - documents: List of text chunks from the document.
+            - embeddings: List of embeddings corresponding to each text chunk.
+            - metadatas: List of metadata for each text chunk.
+    """
+    nodes = chunk_document(document)
+    documents = [node.text for node in nodes]
+    embeddings = [get_embedding(node.text) for node in nodes]
+    metadatas = [node.metadata for node in nodes]
+    ids = [node.metadata["node_id"] for node in nodes]
+
+    return documents, embeddings, metadatas, ids
