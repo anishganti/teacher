@@ -1,7 +1,7 @@
 from llama_index.core.node_parser import MarkdownNodeParser
 from llama_index.core import Document
 from openai import OpenAI
-from utils.embeddings import get_embedding
+from backend.utils.models import get_embedding
 
 def chunk_document(document: Document) -> list:
     """
@@ -52,7 +52,7 @@ def chunk_and_embed(document: str) -> str:
     """
     nodes = chunk_document(document)
     documents = [node.text for node in nodes]
-    embeddings = [get_embedding(node.text) for node in nodes]
+    embeddings = [get_embedding(node.text, input_type="passage") for node in nodes]
     metadatas = [node.metadata for node in nodes]
     ids = [node.metadata["node_id"] for node in nodes]
 

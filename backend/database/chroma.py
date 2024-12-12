@@ -1,5 +1,5 @@
 import chromadb
-from utils.embeddings import get_embedding
+from backend.utils.models import get_embedding
 
 class ChromaDBClient: 
     def __init__(self, path='/Users/anishganti/Desktop/teacher/backend/storage/embeddings'):
@@ -42,7 +42,7 @@ class ChromaDBCollection:
         collection = self.client.client.get_or_create_collection(name=name)
         return collection
 
-    def query(self, query_text, n_results=1):
+    def query(self, query_text, n_results=2):
         """
         Query the collection with the given query texts and return the top n results.
 
@@ -53,21 +53,25 @@ class ChromaDBCollection:
         Returns:
             List[Document]: The list of results.
         """
-        query_embedding = get_embedding(query_text)
+        query_embedding = get_embedding(query_text, input_type="query")
 
         results = self.collection.query(
             query_embeddings=[query_embedding],
-            n_results=n_results
+            n_results=n_results,
+            include=["embeddings", "documents", "metadatas", "distances"],
         )
 
+        return results
+
     def add(self, documents, embeddings, metadatas, ids):
+        print("Adding to ChromaDB")
         """
         Add the given documents, embeddings, metadatas, and ids to the collection.
 
         Args:
-            documents (List[Document]): The documents to add.
-            embeddings (List[Embeddings]): The embeddings to add.
-            metadatas (List[Metadata]): The metadatas to add.
+            documents (List[str]): The documents to add.
+            embeddings (List[List[float]]): The embeddings to add.
+            metadatas (List[dict]): The metadatas to add.
         """
         self.collection.add(
             documents=documents,
@@ -75,4 +79,3 @@ class ChromaDBCollection:
             metadatas=metadatas, 
             ids=ids
         )
-

@@ -2,6 +2,7 @@ from preprocess.pdf_to_markdown import parse_documents, add_page_numbers, store_
 from preprocess.chunk_and_embed import chunk_and_embed
 from preprocess.index_into_chroma import index_into_chroma
 from utils.document_serializer import serialize, deserialize
+from database.chroma import ChromaDBCollection
 from dotenv import load_dotenv
 import json
 
@@ -29,5 +30,11 @@ def main():
         documents, embeddings, metadatas, ids = chunk_and_embed(document)
         index_into_chroma("deeplearningbooksample", documents, embeddings, metadatas, ids)
 
+
+def main2(): 
+    collection = ChromaDBCollection("deeplearningbooksample")
+    results = collection.query("what is deep learning")
+    print(results)
+
 if __name__ == "__main__":
-    main()
+    main2()
